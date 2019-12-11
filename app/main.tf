@@ -3,14 +3,16 @@ provider "aws" {
 }
 
 module "vpc" {
-    source = "modules/vpc"
+    source = "../modules/vpc"
 }
-resource "aws_key_pair" "key_pair" {
-  key_name   = "terraform-key"
-  public_key = "~/.ssh/terraform-aws.pub"
+
+resource "aws_key_pair" "keypair" {
+  key_name = "terraform-key"
+  public_key = "~/.ssh/terraform_key.pub"
+}
 
 resource "aws_instance" "webA" {
-    ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
+    ami = lookup(var.aws_ubuntu_awis, var.region)
     instance_type = "t2.micro"
     tags = {
         Name = "webA-${var.name}"
@@ -21,7 +23,7 @@ resource "aws_instance" "webA" {
     vpc_security_group_ids = [aws_security_group.WebserverSG.id]
 }
 resource "aws_instance" "webB" {
-    ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
+    ami = lookup(var.aws_ubuntu_awis,var.region)
     instance_type = "t2.micro"
     tags {
         Name = "webB-${var.name}"
@@ -32,7 +34,7 @@ resource "aws_instance" "webB" {
     vpc_security_group_ids = [aws_security_group.WebserverSG.id]
 }
 resource "aws_instance" "bastionA" {
-    ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
+    ami = lookup(var.aws_ubuntu_awis,var.region)
     instance_type = "t2.micro"
     tags {
         Name = "bastionA-${var.name}"
@@ -44,7 +46,7 @@ resource "aws_instance" "bastionA" {
 }
 
 resource "aws_instance" "bastoionB" {
-    ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
+    ami = lookup(var.aws_ubuntu_awis,var.region)
     instance_type = "t2.micro"
     tags {
         Name = "bastionB-${var.name}"
