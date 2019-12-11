@@ -2,10 +2,12 @@ provider "aws" {
   region = "eu-central-1"
 }
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
+module "vpc" {
+    source = "modules/vpc"
 }
+resource "aws_key_pair" "key_pair" {
+  key_name   = "terraform-key"
+  public_key = "~/.ssh/terraform-aws.pub"
 
 resource "aws_instance" "webA" {
     ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
@@ -14,9 +16,9 @@ resource "aws_instance" "webA" {
         Name = "webA-${var.name}"
         sshUser = "ubuntu"
     }
-    subnet_id = "${aws_subnet.web1SUBNET.id}"
-    key_name = "${aws_key_pair.keypair.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.WebserverSG.id}"]
+    subnet_id = module.vpc.aws_subnet_web1_id
+    key_name = aws_key_pair.keypair.key_name
+    vpc_security_group_ids = [aws_security_group.WebserverSG.id]
 }
 resource "aws_instance" "webB" {
     ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
@@ -25,9 +27,9 @@ resource "aws_instance" "webB" {
         Name = "webB-${var.name}"
         sshUser = "ubuntu"
     }
-    subnet_id = "${aws_subnet.web2SUBNET.id}"
-    key_name = "${aws_key_pair.keypair.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.WebserverSG.id}"]
+    subnet_id = module.vpc.aws_subnet_web2_id
+    key_name = aws_key_pair.keypair.key_name
+    vpc_security_group_ids = [aws_security_group.WebserverSG.id]
 }
 resource "aws_instance" "bastionA" {
     ami = "${lookup(var.aws_ubuntu_awis,var.region)}"
@@ -36,9 +38,9 @@ resource "aws_instance" "bastionA" {
         Name = "bastionA-${var.name}"
         sshUser = "ubuntu"
     }
-    subnet_id = "${aws_subnet.web1SUBNET.id}"
-    key_name = "${aws_key_pair.keypair.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.bastionhostSG.id}"]
+    subnet_id = module.vpc.aws_subnet_web1_id
+    key_name = aws_key_pair.keypair.key_name
+    vpc_security_group_ids = [aws_security_group.bastionhostSG.id]
 }
 
 resource "aws_instance" "bastoionB" {
@@ -48,14 +50,14 @@ resource "aws_instance" "bastoionB" {
         Name = "bastionB-${var.name}"
         sshUser = "ubuntu"
     }
-    subnet_id = "${aws_subnet.web2SUBNET.id}"
-    key_name = "${aws_key_pair.keypair.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.bastionhostSG.id}"]
+    subnet_id = module.vpc.aws_subnet_web2_id
+    key_name = aws_key_pair.keypair.key_name
+    vpc_security_group_ids = [aws_security_group.bastionhostSG.id]
 }
 
 resource "aws_elb" "lb" {
     name_prefix = "${var.name}-lb"
-    subnets = ["${aws_subnet.web1SUBNET.id}", "${aws_subnet.web2SUBNET.id}"]
+    subnets = [module.vpc.aws_subnet_web1_id, module.vpc.aws_subnet_web2_id]
     health_check {
         healthy_threshold = 2
         unhealthy_threshold = 2
@@ -70,6 +72,6 @@ resource "aws_elb" "lb" {
         lb_protocol = "http"
     }
     cross_zone_load_balancing = true
-    instances = ["${aws_instance.webA.id}", "${aws_instance.webB.id}"]
-    security_groups = ["${aws_security_group.LoadBalancerSG.id}"]
+    instances = [aws_instance.webA.id, aws_instance.webB.id]
+    security_groups = [aws_security_group.LoadBalancerSG.id]
 }
