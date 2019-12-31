@@ -12,7 +12,7 @@ resource "aws_key_pair" "keypair" {
 }
 
 resource "aws_instance" "webA" {
-    ami = lookup(var.aws_ubuntu_awis, var.region)
+    ami = "ami-0cc0a36f626a4fdf5"
     instance_type = "t2.micro"
     tags = {
         Name = "webA-${var.name}"
@@ -23,7 +23,7 @@ resource "aws_instance" "webA" {
     vpc_security_group_ids = [aws_security_group.WebserverSG.id]
 }
 resource "aws_instance" "webB" {
-    ami = lookup(var.aws_ubuntu_awis,var.region)
+    ami = "ami-0cc0a36f626a4fdf5"
     instance_type = "t2.micro"
     tags {
         Name = "webB-${var.name}"
@@ -34,7 +34,7 @@ resource "aws_instance" "webB" {
     vpc_security_group_ids = [aws_security_group.WebserverSG.id]
 }
 resource "aws_instance" "bastionA" {
-    ami = lookup(var.aws_ubuntu_awis,var.region)
+    ami = "ami-0cc0a36f626a4fdf5"
     instance_type = "t2.micro"
     tags {
         Name = "bastionA-${var.name}"
@@ -46,7 +46,7 @@ resource "aws_instance" "bastionA" {
 }
 
 resource "aws_instance" "bastoionB" {
-    ami = lookup(var.aws_ubuntu_awis,var.region)
+    ami = "ami-0cc0a36f626a4fdf5"
     instance_type = "t2.micro"
     tags {
         Name = "bastionB-${var.name}"
