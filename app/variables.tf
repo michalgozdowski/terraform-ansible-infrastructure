@@ -2,14 +2,16 @@ variable "name" {
     default = "test"
 }
 
-variable "region"
-{
+variable "region" {
     default = "eu-central-1"
 }
 
-variable "aws_ubuntu_awis"
-{
+variable "aws_ubuntu_awis" {
     default = {
         "eu-central-1" = "ami-0cc0a36f626a4fdf5 "
     }
+}
+
+variable "mgmt_ips" {
+    default = ["0.0.0.0/0"]
 }

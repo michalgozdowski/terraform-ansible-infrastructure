@@ -1,3 +1,7 @@
+output "aws_vpc_id" {
+  value       = "${aws_vpc.testVPC.id}"
+}
+
 output "aws_subnet_web1_id" {
   value       = "${aws_subnet.web1SUBNET.id}"
 }
