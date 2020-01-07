@@ -68,12 +68,6 @@ resource "aws_elb" "lb" {
         lb_protocol = "http"
     }
     listener {
-        instance_port = 443
-        instance_protocol = "https"
-        lb_port = 443
-        lb_protocol = "https"
-    }
-    listener {
         instance_port = 22
         instance_protocol = "tcp"
         lb_port = 22
@@ -118,20 +112,6 @@ resource "aws_security_group" "WEBsecuritygroup" {
     name = "WEBsecuritygroup"
     vpc_id = data.terraform_remote_state.vpc.outputs.aws_vpc_id
     description = "Security group for webservers"
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "TCP"
-        security_groups = ["${aws_security_group.LBsecuritygroup.id}"]
-        description = "Allow incoming SSH traffic from Load Balancer"
-    }
-    ingress {
-      from_port = -1
-      to_port = -1
-      protocol = "ICMP"
-      security_groups = ["${aws_security_group.LBsecuritygroup.id}"]
-      description = "Allow incoming ICMP from management IPs"
-    }
     egress {
         from_port = 0
         to_port = 0
@@ -149,6 +129,8 @@ resource "aws_security_group_rule" "allowHTTP" {
   to_port         = 80
   protocol        = "tcp"
   security_group_id = aws_security_group.LBsecuritygroup.id
+  source_security_group_id = aws_security_group.WEBsecuritygroup.id
+  
 
 }
 
@@ -158,6 +140,7 @@ resource "aws_security_group_rule" "allowHTTPS" {
   to_port         = 443
   protocol        = "tcp"
   security_group_id = aws_security_group.LBsecuritygroup.id
+  source_security_group_id = aws_security_group.WEBsecuritygroup.id
 }
 
 resource "aws_security_group_rule" "allowSSH" {
@@ -166,7 +149,7 @@ resource "aws_security_group_rule" "allowSSH" {
   to_port         = 22
   protocol        = "tcp"
   security_group_id = aws_security_group.LBsecuritygroup.id
-
+  source_security_group_id = aws_security_group.WEBsecuritygroup.id
 }
 
 resource "aws_security_group_rule" "WEBallowSSH" {
